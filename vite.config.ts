@@ -139,4 +139,17 @@ function localDevApiPlugin(): Plugin {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), localDevApiPlugin()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-three': ['three', '@react-three/fiber', '@react-three/drei'],
+          'vendor-gsap': ['gsap', 'lenis'],
+          'vendor-motion': ['framer-motion'],
+        },
+      },
+    },
+  },
 });
+

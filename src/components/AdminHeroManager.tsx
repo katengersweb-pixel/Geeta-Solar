@@ -136,8 +136,11 @@ export const AdminHeroManager: React.FC = () => {
     }
 
     setSelectedFile(file);
-    const objectUrl = URL.createObjectURL(file);
-    setPreviewUrl(objectUrl);
+    // Revoke previous object URL to prevent memory leak
+    setPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
   };
 
   // 5. Handle Upload to Vercel Blob / Local Storage
@@ -165,7 +168,11 @@ export const AdminHeroManager: React.FC = () => {
         setCurrentHeroImage(data.data.url);
         setLastUpdated(data.data.updatedAt);
         setSelectedFile(null);
-        setPreviewUrl(null);
+        // Revoke object URL on successful upload to free memory
+        setPreviewUrl((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return null;
+        });
         if (fileInputRef.current) fileInputRef.current.value = '';
         setUploadStatus({
           type: 'success',

@@ -22,15 +22,18 @@ export function useLenisScroll() {
     // Synchronize Lenis with GSAP ScrollTrigger
     lenis.on('scroll', ScrollTrigger.update);
 
-    gsap.ticker.add((time) => {
+    // Store ticker fn reference so it can be properly removed on cleanup
+    const tickerFn = (time: number) => {
       lenis.raf(time * 1000);
-    });
+    };
 
+    gsap.ticker.add(tickerFn);
     gsap.ticker.lagSmoothing(0);
 
     return () => {
       lenis.destroy();
-      gsap.ticker.remove(lenis.raf);
+      gsap.ticker.remove(tickerFn);
+      ScrollTrigger.getAll().forEach((t) => t.kill());
     };
   }, []);
 }
