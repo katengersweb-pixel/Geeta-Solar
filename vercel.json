@@ -1,4 +1,10 @@
 {
+  "outputDirectory": "dist",
+  "functions": {
+    "api/**/*.ts": {
+      "runtime": "@vercel/node@4"
+    }
+  },
   "rewrites": [
     {
       "source": "/((?!api/.*).*)",
