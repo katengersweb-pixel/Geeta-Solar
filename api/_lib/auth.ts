@@ -8,12 +8,13 @@ function getSecretKey(): string {
 }
 
 export function getAdminPassword(): string {
-  return process.env.ADMIN_PASSWORD_1 || process.env.ADMIN_PASSWORD || 'Geeta@Admin2026';
+  return 'Geeta@Admin2026';
 }
 
 export function getValidAdminPasswords(): string[] {
-  const admin1 = process.env.ADMIN_PASSWORD_1 || process.env.ADMIN_PASSWORD || 'Geeta@Admin2026';
-  const admin2 = process.env.ADMIN_PASSWORD_2 || 'Geeta@AdminTwo2026';
+  // Primary and secondary admin passwords
+  const admin1 = 'Geeta@Admin2026';
+  const admin2 = 'Geeta@AdminTwo2026';
   return [admin1, admin2];
 }
 
