@@ -1,0 +1,158 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <defs>
+    <!-- Soft shadow for badge elevation if needed -->
+    <filter id="softGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15" />
+    </filter>
+  </defs>
+
+  <!-- Base White Circular Disc -->
+  <circle cx="100" cy="100" r="98" fill="#FFFFFF" />
+
+  <!-- Outer Red "G" Emblem Ring -->
+  <!-- Sweeps clockwise from top-right (155,30), around left, down, up right, and swoops inward -->
+  <path
+    d="M 152 28
+       A 90 90 0 1 0 186 112
+       C 186 96 172 100 156 104
+       C 136 110 120 120 112 124
+       C 134 116 160 102 174 100
+       C 174 135 145 174 100 174
+       A 74 74 0 1 1 140 44
+       C 146 38 149 32 152 28 Z"
+    fill="#E11D2A"
+  />
+
+  <!-- Dynamic Red Swoosh Arrow / Inward G-Bar -->
+  <path
+    d="M 184 94
+       C 184 94 150 104 114 123
+       C 142 118 174 106 184 94 Z"
+    fill="#E11D2A"
+  />
+
+  <!-- Sun Rays (9 Radiating Rays) -->
+  <g fill="#F59E0B">
+    <!-- Center Top Ray -->
+    <polygon points="100,24 96,44 104,44" />
+    <!-- Ray 2 (Right 1) -->
+    <polygon points="117,29 110,48 118,45" />
+    <!-- Ray 3 (Right 2) -->
+    <polygon points="132,38 122,54 129,49" />
+    <!-- Ray 4 (Right 3) -->
+    <polygon points="144,52 131,64 137,58" />
+    <!-- Ray 5 (Right 4) -->
+    <polygon points="149,69 135,74 139,68" />
+    <!-- Ray 6 (Left 1) -->
+    <polygon points="83,29 82,45 90,48" />
+    <!-- Ray 7 (Left 2) -->
+    <polygon points="68,38 71,49 78,54" />
+    <!-- Ray 8 (Left 3) -->
+    <polygon points="56,52 63,58 69,64" />
+    <!-- Ray 9 (Left 4) -->
+    <polygon points="51,69 61,68 65,74" />
+  </g>
+
+  <!-- Sun Core (Golden Half Sun) -->
+  <path
+    d="M 72 74
+       A 28 28 0 0 1 128 74
+       Z"
+    fill="#F59E0B"
+  />
+
+  <!-- Solar Photovoltaic Panel Array (Curved Blue Block) -->
+  <path
+    d="M 72 74
+       C 80 72 120 72 128 74
+       C 142 75 152 86 148 96
+       C 144 106 128 114 100 114
+       C 72 114 56 106 52 96
+       C 48 86 58 75 72 74 Z"
+    fill="#1665C1"
+  />
+
+  <!-- Solar Panel Grid Lines (White Lattice) -->
+  <!-- Horizontal Grid Curves -->
+  <path
+    d="M 57 87 C 80 84 120 84 143 87"
+    stroke="#FFFFFF"
+    stroke-width="1.6"
+    stroke-linecap="round"
+    fill="none"
+  />
+  <path
+    d="M 64 100 C 80 98 120 98 136 100"
+    stroke="#FFFFFF"
+    stroke-width="1.6"
+    stroke-linecap="round"
+    fill="none"
+  />
+
+  <!-- Vertical Grid Curves (6 Columns = 5 Dividers) -->
+  <path
+    d="M 100 73 L 100 114"
+    stroke="#FFFFFF"
+    stroke-width="1.6"
+    fill="none"
+  />
+  <path
+    d="M 85 73 C 84 85 82 100 80 112"
+    stroke="#FFFFFF"
+    stroke-width="1.6"
+    fill="none"
+  />
+  <path
+    d="M 115 73 C 116 85 118 100 120 112"
+    stroke="#FFFFFF"
+    stroke-width="1.6"
+    fill="none"
+  />
+  <path
+    d="M 72 75 C 69 86 66 98 64 106"
+    stroke="#FFFFFF"
+    stroke-width="1.6"
+    fill="none"
+  />
+  <path
+    d="M 128 75 C 131 86 134 98 136 106"
+    stroke="#FFFFFF"
+    stroke-width="1.6"
+    fill="none"
+  />
+
+  <!-- Red G Inward Tail (Accent point over panel base) -->
+  <path
+    d="M 174 94
+       C 160 102 138 114 114 123
+       C 134 115 158 106 174 94 Z"
+    fill="#E11D2A"
+  />
+
+  <!-- GEETA SOLARS Text -->
+  <text
+    x="100"
+    y="148"
+    text-anchor="middle"
+    font-family="'Plus Jakarta Sans', 'Outfit', -apple-system, sans-serif"
+    font-weight="900"
+    font-size="20"
+    fill="#0E233E"
+    letter-spacing="0.5"
+  >
+    GEETA
+  </text>
+
+  <text
+    x="100"
+    y="164"
+    text-anchor="middle"
+    font-family="'Plus Jakarta Sans', 'Outfit', -apple-system, sans-serif"
+    font-weight="800"
+    font-size="11.5"
+    fill="#0E233E"
+    letter-spacing="2"
+  >
+    SOLARS
+  </text>
+</svg>
