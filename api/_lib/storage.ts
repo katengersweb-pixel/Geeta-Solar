@@ -26,48 +26,28 @@ export function validateImageUpload(
   declaredMimeType: string,
   fileName: string
 ): { valid: boolean; error?: string; extension?: string; mimeType?: AllowedMimeType } {
-  // Check file size
   if (!buffer || buffer.length === 0) {
     return { valid: false, error: 'Empty file received' };
   }
-
   if (buffer.length > MAX_FILE_SIZE_BYTES) {
     return { valid: false, error: 'File size exceeds maximum limit of 5 MB' };
   }
-
-  // Check MIME type
   const normalizedMime = declaredMimeType.toLowerCase().trim();
   if (!ALLOWED_MIME_TYPES.includes(normalizedMime as AllowedMimeType)) {
-    return {
-      valid: false,
-      error: `Invalid file type: ${declaredMimeType}. Only JPG, JPEG, PNG, and WebP are allowed.`,
-    };
+    return { valid: false, error: `Invalid file type: ${declaredMimeType}. Only JPG, JPEG, PNG, and WebP are allowed.` };
   }
-
-  // Check file extension
   const extMatch = fileName.toLowerCase().match(/\.(jpe?g|png|webp)$/);
   if (!extMatch) {
-    return {
-      valid: false,
-      error: 'Invalid file extension. Only .jpg, .jpeg, .png, and .webp are allowed.',
-    };
+    return { valid: false, error: 'Invalid file extension. Only .jpg, .jpeg, .png, and .webp are allowed.' };
   }
-
   let ext = extMatch[1];
   if (ext === 'jpeg') ext = 'jpg';
-
-  // Check magic bytes / signatures to prevent masquerading
   if (normalizedMime === 'image/jpeg' || ext === 'jpg') {
     if (buffer[0] !== 0xff || buffer[1] !== 0xd8 || buffer[2] !== 0xff) {
       return { valid: false, error: 'Invalid JPEG file content' };
     }
   } else if (normalizedMime === 'image/png' || ext === 'png') {
-    if (
-      buffer[0] !== 0x89 ||
-      buffer[1] !== 0x50 ||
-      buffer[2] !== 0x4e ||
-      buffer[3] !== 0x47
-    ) {
+    if (buffer[0] !== 0x89 || buffer[1] !== 0x50 || buffer[2] !== 0x4e || buffer[3] !== 0x47) {
       return { valid: false, error: 'Invalid PNG file content' };
     }
   } else if (normalizedMime === 'image/webp' || ext === 'webp') {
@@ -77,39 +57,43 @@ export function validateImageUpload(
       return { valid: false, error: 'Invalid WebP file content' };
     }
   }
-
-  return {
-    valid: true,
-    extension: ext,
-    mimeType: normalizedMime as AllowedMimeType,
-  };
+  return { valid: true, extension: ext, mimeType: normalizedMime as AllowedMimeType };
 }
 
 /**
- * Retrieves the current Hero image record persistently from Vercel Blob
+ * Retrieves the current Hero image record from Vercel Blob.
+ *
+ * FIX: Old approach overwrote the same "hero-meta.json" file path, causing
+ * Vercel CDN to serve stale cached content after each update.
+ * New approach: lists ALL metadata files under "hero/meta/", sorts by
+ * uploadedAt descending, and fetches the most recent one by its unique URL.
+ * Because each metadata file has a unique timestamped path/URL, CDN never
+ * serves stale data.
  */
 export function getHeroImageRecordAsync(): Promise<HeroImageRecord> {
   return (async () => {
     const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
-
-    // If running with Vercel Blob token configured:
     if (blobToken) {
       try {
-        const { blobs } = await list({
-          prefix: 'hero/hero-meta.json',
-          token: blobToken,
-        });
-
+        const { blobs } = await list({ prefix: 'hero/meta/', token: blobToken });
         if (blobs && blobs.length > 0) {
-          const metaBlob = blobs[0];
-          const response = await fetch(metaBlob.url, { cache: 'no-store' });
+          // Sort by uploadedAt descending — most recent first
+          blobs.sort((a, b) => {
+            const tA = a.uploadedAt ? new Date(a.uploadedAt).getTime() : 0;
+            const tB = b.uploadedAt ? new Date(b.uploadedAt).getTime() : 0;
+            return tB - tA;
+          });
+          const latestMeta = blobs[0];
+          // Each metadata file has a unique URL (timestamped path), so CDN
+          // never serves stale content — always a fresh unique URL.
+          const response = await fetch(latestMeta.url, { cache: 'no-store' });
           if (response.ok) {
             const data = (await response.json()) as HeroImageRecord;
             if (data && data.url) {
               return {
                 key: 'hero-image',
                 url: data.url,
-                updatedAt: data.updatedAt || metaBlob.uploadedAt?.toISOString() || new Date().toISOString(),
+                updatedAt: data.updatedAt || latestMeta.uploadedAt?.toISOString() || new Date().toISOString(),
                 isDefault: false,
               };
             }
@@ -119,24 +103,17 @@ export function getHeroImageRecordAsync(): Promise<HeroImageRecord> {
         console.error('Error fetching hero image record from Vercel Blob:', err);
       }
     }
-
-    // In-memory fallback if in dev mode
-    if (localDevHeroRecord) {
-      return localDevHeroRecord;
-    }
-
-    // Default fallback
-    return {
-      key: 'hero-image',
-      url: DEFAULT_HERO_IMAGE,
-      updatedAt: null,
-      isDefault: true,
-    };
+    if (localDevHeroRecord) return localDevHeroRecord;
+    return { key: 'hero-image', url: DEFAULT_HERO_IMAGE, updatedAt: null, isDefault: true };
   })();
 }
 
 /**
- * Saves a new Hero image to Vercel Blob and updates the persistent metadata record
+ * Saves a new Hero image to Vercel Blob and updates the persistent metadata record.
+ *
+ * FIX: Metadata is now saved as a unique timestamped file "hero/meta/<timestamp>.json"
+ * instead of always overwriting "hero/hero-meta.json". This gives every metadata write
+ * a brand-new CDN URL — no stale cache issues ever.
  */
 export async function saveHeroImageToBlob(
   buffer: Buffer,
@@ -146,35 +123,31 @@ export async function saveHeroImageToBlob(
   const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
   const timestamp = Date.now();
   const blobPath = `hero/hero-${timestamp}.${ext}`;
-
   if (blobToken) {
-    // 1. Upload the versioned image blob to Vercel Blob
+    // 1. Upload the versioned image blob
     const imageBlob = await put(blobPath, buffer, {
       access: 'public',
       contentType: mimeType,
       token: blobToken,
       addRandomSuffix: false,
     });
-
     const record: HeroImageRecord = {
       key: 'hero-image',
       url: imageBlob.url,
       updatedAt: new Date().toISOString(),
       isDefault: false,
     };
-
-    // 2. Persist the metadata record to Vercel Blob
-    await put('hero/hero-meta.json', JSON.stringify(record), {
+    // 2. Save metadata as a NEW unique timestamped file — not overwrite same path.
+    //    hero/meta/<timestamp>.json has a unique URL every time = no CDN cache issues.
+    await put(`hero/meta/${timestamp}.json`, JSON.stringify(record), {
       access: 'public',
       contentType: 'application/json',
       token: blobToken,
       addRandomSuffix: false,
     });
-
     return record;
   }
-
-  // Local development fallback if token is not provided in local dev environment
+  // Local development fallback
   const base64Data = `data:${mimeType};base64,${buffer.toString('base64')}`;
   localDevHeroRecord = {
     key: 'hero-image',
@@ -182,6 +155,5 @@ export async function saveHeroImageToBlob(
     updatedAt: new Date().toISOString(),
     isDefault: false,
   };
-
   return localDevHeroRecord;
 }
